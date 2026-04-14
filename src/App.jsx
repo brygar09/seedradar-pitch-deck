@@ -343,7 +343,43 @@ export default function App() {
               style={styles.input}
             />
           ) : (
-            <input type="file" multiple onChange={handleFiles} />
+            <div
+				  style={styles.uploadBox}
+				  onDragOver={(e) => e.preventDefault()}
+				  onDrop={(e) => {
+					e.preventDefault();
+					setFiles(Array.from(e.dataTransfer.files));
+				  }}
+				>
+				  <input
+					type="file"
+					multiple
+					onChange={handleFiles}
+					style={styles.hiddenInput}
+					id="fileUpload"
+				  />
+
+				  <label htmlFor="fileUpload" style={styles.uploadLabel}>
+					<div style={styles.uploadIcon}>📎</div>
+
+					<div style={styles.uploadText}>
+					  <b>Upload your pitch deck</b>
+					  <div style={styles.uploadSub}>
+						Drag & drop files here or click to browse
+					  </div>
+					</div>
+				  </label>
+
+				  {files.length > 0 && (
+					<div style={styles.filePreview}>
+					  {files.map((f, i) => (
+						<div key={i} style={styles.fileItem}>
+						  📄 {f.name}
+						</div>
+					  ))}
+					</div>
+				  )}
+				</div>
           )}
 
           <button onClick={nextStep} style={styles.button}>
@@ -455,5 +491,57 @@ const styles = {
     height: "100%",
     background: "#10a37f",
     transition: "width 0.3s ease"
-  }
+  },
+  uploadBox: {
+  border: "2px dashed #d1d5db",
+  borderRadius: 14,
+  padding: 16,
+  background: "#f9fafb",
+  textAlign: "center",
+  cursor: "pointer",
+  transition: "all 0.2s ease",
+  position: "relative"
+},
+
+uploadLabel: {
+  cursor: "pointer",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 6
+},
+
+uploadIcon: {
+  fontSize: 24
+},
+
+uploadText: {
+  fontSize: 13,
+  color: "#111827"
+},
+
+uploadSub: {
+  fontSize: 11,
+  color: "#6b7280"
+},
+
+hiddenInput: {
+  display: "none"
+},
+
+filePreview: {
+  marginTop: 12,
+  display: "flex",
+  flexDirection: "column",
+  gap: 6,
+  textAlign: "left"
+},
+
+fileItem: {
+  fontSize: 12,
+  padding: "6px 10px",
+  borderRadius: 8,
+  background: "#fff",
+  border: "1px solid #e5e7eb"
+}
 };
