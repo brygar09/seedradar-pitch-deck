@@ -127,7 +127,28 @@ export default function App() {
     <div style={styles.page}>
       <div style={styles.card}>
 
-        <div style={styles.header}>Seed Radar - Cold Pitch Intake</div>
+        <div style={{...styles.page}}>
+          <div style={{...styles.card, textAlign: "right", fontSize: "1.4rem"}}>
+    
+            <div style={{
+    		  padding: 14,
+    		  borderBottom: "1px solid #eee",
+    		  display: "flex",
+    		  alignItems: "center",
+    		  gap: 10,
+    		  fontWeight: 600,
+    		  backgroundColor: "rgb(62, 64, 81)",
+    		  color: "white"
+    		}}>
+      
+    		  <img
+    			src="/seedradar-logo.png"
+    			alt="logo"
+    			style={{ width: 200 }}
+    		  />
+    
+    		&nbsp;Cold Pitch Intake
+    </div>
 
         <div style={styles.chat}>
           {messages.map((m, i) => (
