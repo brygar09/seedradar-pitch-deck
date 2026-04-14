@@ -4,17 +4,15 @@ const steps = [
   "companyName",
   "website",
   "description",
-  "founders",
-  "linkedin",
+  "foundersCount",
   "attachments"
 ];
 
 const questions = {
   companyName: "What is your Company name?",
   website: "What is your company's Website URL?",
-  description: "Provide Brief description of your company",
-  founders: "Who are the Founders?",
-  linkedin: "Provide Founders LinkedIn Profile",
+  description: "Provide brief description of your company",
+  foundersCount: "How many founders are there?",
   attachments: "Upload deck"
 };
 
@@ -23,6 +21,7 @@ export default function App() {
   const [input, setInput] = useState("");
   const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
   const bottomRef = useRef(null);
 
   const [messages, setMessages] = useState([
@@ -33,36 +32,152 @@ export default function App() {
   const [form, setForm] = useState({
     companyName: "",
     website: "",
-    description: "",
-    founders: "",
-    linkedin: ""
+    description: ""
   });
+
+  // =========================
+  // FOUNDERS STATE
+  // =========================
+  const [founderMode, setFounderMode] = useState(false);
+  const [founderCount, setFounderCount] = useState(0);
+  const [founders, setFounders] = useState([]);
+  const [founderIndex, setFounderIndex] = useState(0);
+  const [founderPhase, setFounderPhase] = useState(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, [messages]);
 
-  const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  // =========================
+  // PROGRESS CALC
+  // =========================
+  const currentFounderNumber = founderIndex + 1;
+  const totalFounders = founderCount || 1;
+
+  const progressPercent = founderMode
+    ? Math.min(
+        100,
+        Math.round((currentFounderNumber / totalFounders) * 100)
+      )
+    : 0;
+
+  // =========================
+  // MAIN FLOW
+  // =========================
   const nextStep = async () => {
     const key = steps[step];
 
+    // =========================
+    // START FOUNDERS FLOW
+    // =========================
+    if (key === "foundersCount" && !founderMode) {
+      const count = parseInt(input);
+
+      if (!count || count <= 0) return;
+
+      setMessages((p) => [...p, { role: "user", content: input }]);
+
+      setFounderMode(true);
+      setFounderCount(count);
+      setFounders([]);
+      setFounderIndex(0);
+      setFounderPhase("name");
+
+      setInput("");
+
+      setTimeout(() => {
+        setMessages((p) => [
+          ...p,
+          { role: "assistant", content: "Founder 1 name?" }
+        ]);
+      }, 300);
+
+      return;
+    }
+
+    // =========================
+    // FOUNDERS FLOW
+    // =========================
+    if (founderMode) {
+      if (!input || input.trim() === "") return;
+
+      const updated = [...founders];
+
+      const isName = founderPhase === "name";
+
+      setMessages((p) => [...p, { role: "user", content: input }]);
+
+      if (isName) {
+        updated.push({ name: input.trim(), linkedin: "" });
+        setFounderPhase("linkedin");
+      } else {
+        updated[founderIndex].linkedin = input.trim();
+        setFounderPhase("name");
+      }
+
+      setFounders(updated);
+      setInput("");
+
+      const nextIndex =
+        isName ? founderIndex : founderIndex + 1;
+
+      // DONE
+      if (nextIndex >= founderCount && !isName) {
+        setFounderMode(false);
+        setFounderPhase(null);
+
+        setStep(steps.indexOf("attachments"));
+
+        setTimeout(() => {
+          setMessages((p) => [
+            ...p,
+            { role: "assistant", content: "Upload deck" }
+          ]);
+        }, 300);
+
+        return;
+      }
+
+      if (!isName) {
+        setFounderIndex(nextIndex);
+      }
+
+      setTimeout(() => {
+        setMessages((p) => [
+          ...p,
+          {
+            role: "assistant",
+            content: isName
+              ? `Founder ${founderIndex + 1} LinkedIn?`
+              : `Founder ${nextIndex + 1} name?`
+          }
+        ]);
+      }, 300);
+
+      return;
+    }
+
+    // =========================
+    // NORMAL FLOW
+    // =========================
     if (key !== "attachments") {
-      setForm(prev => ({ ...prev, [key]: input }));
+      setForm((p) => ({ ...p, [key]: input }));
     }
 
     const next = step + 1;
 
+    setMessages((p) => [...p, { role: "user", content: input }]);
+
     if (next < steps.length) {
-      setMessages(prev => [...prev, { role: "user", content: input }]);
-
       setIsLoading(true);
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+      setMessages((p) => [...p, { role: "assistant", content: "..." }]);
 
-      await sleep(800);
+      await sleep(400);
 
-      setMessages(prev => {
-        const copy = [...prev];
+      setMessages((p) => {
+        const copy = [...p];
         copy[copy.length - 1] = {
           role: "assistant",
           content: questions[steps[next]]
@@ -78,33 +193,36 @@ export default function App() {
     }
   };
 
-const submit = async () => {
-  const payload = {
-    ...form,
-    attachments: files.map(f => ({
-      name: f.name,
-      size: f.size,
-      type: f.type
-    })),
-    submittedAt: new Date().toISOString()
-  };
+  // =========================
+  // SUBMIT
+  // =========================
+  const submit = async () => {
+    const payload = new FormData();
 
-  setIsLoading(true);
+  // text fields
+  payload.append("companyName", form.companyName);
+  payload.append("website", form.website);
+  payload.append("description", form.description);
+  payload.append("founders", JSON.stringify(founders));
+  payload.append("submittedAt", new Date().toISOString());
 
-  setMessages((p) => [
-    ...p,
-    { role: "assistant", content: "Submitting to system..." }
-  ]);
+  // files (REAL UPLOAD)
+  files.forEach((file, index) => {
+    payload.append(`filesAttachment`, file); // same key = array in Make.com
+  });
+    setIsLoading(true);
 
-  try {
+    setMessages((p) => [
+      ...p,
+      { role: "assistant", content: "Submitting..." }
+    ]);
+
+    try {
     const res = await fetch(
       "https://hook.us2.make.com/pwv97ctf3lauprqry0hwgykmedyiy2uo",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+        body: payload
       }
     );
 
@@ -129,24 +247,37 @@ const submit = async () => {
     });
   }
 
-  setIsLoading(false);
-};
+    setIsLoading(false);
+  };
 
-  const handleFiles = e => setFiles(Array.from(e.target.files));
+  const handleFiles = (e) => setFiles(Array.from(e.target.files));
 
-  const handleKey = e => {
+  const handleKey = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (!isLoading) nextStep();
     }
   };
 
-    const LoadingDots = () => (
-    <div style={styles.loadingDots}>
-      <span style={{ ...styles.dot, animationDelay: "0s" }} />
-      <span style={{ ...styles.dot, animationDelay: "0.2s" }} />
-      <span style={{ ...styles.dot, animationDelay: "0.4s" }} />
-    </div>
+  // =========================
+  // PROGRESS BAR UI
+  // =========================
+  const ProgressBar = () => (
+    founderMode && (
+      <div style={styles.progressWrap}>
+        <div style={styles.progressText}>
+          Founder {currentFounderNumber} of {founderCount}
+        </div>
+        <div style={styles.progressBar}>
+          <div
+            style={{
+              ...styles.progressFill,
+              width: `${progressPercent}%`
+            }}
+          />
+        </div>
+      </div>
+    )
   );
 
   return (
@@ -174,6 +305,9 @@ const submit = async () => {
           </span>
         </div>
 
+        {/* PROGRESS BAR */}
+        <ProgressBar />
+
         {/* CHAT */}
         <div style={styles.chat}>
           {messages.map((m, i) => (
@@ -181,27 +315,18 @@ const submit = async () => {
               key={i}
               style={{
                 ...styles.msg,
-                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                alignSelf:
+                  m.role === "user" ? "flex-end" : "flex-start",
                 background:
-                  m.role === "user"
-                    ? "linear-gradient(135deg, #10a37f, #0e8f6f)"
-                    : "#ffffff",
-                color: m.role === "user" ? "#fff" : "#111827",
+                  m.role === "user" ? "#10a37f" : "#fff",
+                color: m.role === "user" ? "#fff" : "#111",
                 border:
-                  m.role === "user"
-                    ? "none"
-                    : "1px solid rgba(0,0,0,0.06)"
+                  m.role === "assistant"
+                    ? "1px solid #eee"
+                    : "none"
               }}
             >
               {m.content}
-
-              {isLoading &&
-                i === messages.length - 1 &&
-                m.role === "assistant" && (
-                  <div style={styles.dots}>
-                    <span>.</span><span>.</span><span>.</span>
-                  </div>
-                )}
             </div>
           ))}
 
@@ -212,23 +337,17 @@ const submit = async () => {
         <div style={styles.inputArea}>
           {steps[step] !== "attachments" ? (
             <textarea
-              style={styles.input}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKey}
-              disabled={isLoading}
-              placeholder="Type your answer..."
+              style={styles.input}
             />
           ) : (
             <input type="file" multiple onChange={handleFiles} />
           )}
 
-          <button
-            style={styles.button}
-            onClick={nextStep}
-            disabled={isLoading}
-          >
-            {step === steps.length - 1 ? "Submit Pitch" : "Continue"}
+          <button onClick={nextStep} style={styles.button}>
+            {step === steps.length - 1 ? "Submit" : "Next"}
           </button>
         </div>
 
@@ -237,6 +356,9 @@ const submit = async () => {
   );
 }
 
+/* =========================
+   STYLES
+========================= */
 const styles = {
   page: {
     height: "100vh",
@@ -308,5 +430,30 @@ const styles = {
     fontWeight: 600,
     transition: "all 0.2s",
     boxShadow: "0 6px 18px rgba(16,163,127,0.25)"
+  },
+
+  // PROGRESS BAR
+  progressWrap: {
+    padding: "10px 12px",
+    borderBottom: "1px solid #eee"
+  },
+
+  progressText: {
+    fontSize: 12,
+    marginBottom: 6,
+    color: "#555"
+  },
+
+  progressBar: {
+    height: 6,
+    background: "#e5e7eb",
+    borderRadius: 999,
+    overflow: "hidden"
+  },
+
+  progressFill: {
+    height: "100%",
+    background: "#10a37f",
+    transition: "width 0.3s ease"
   }
 };
