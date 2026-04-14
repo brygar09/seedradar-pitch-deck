@@ -89,7 +89,7 @@ const submit = async () => {
     submittedAt: new Date().toISOString()
   };
 
-  setLoading(true);
+  setIsLoading(true);
 
   setMessages((p) => [
     ...p,
@@ -129,7 +129,7 @@ const submit = async () => {
     });
   }
 
-  setLoading(false);
+  setIsLoading(false);
 };
 
   const handleFiles = e => setFiles(Array.from(e.target.files));
