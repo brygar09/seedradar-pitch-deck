@@ -78,33 +78,59 @@ export default function App() {
     }
   };
 
-    const submit = async () => {
-    const formData = new FormData();
+const submit = async () => {
+  const payload = {
+    ...form,
+    attachments: files.map(f => ({
+      name: f.name,
+      size: f.size,
+      type: f.type
+    })),
+    submittedAt: new Date().toISOString()
+  };
 
-    Object.entries(form).forEach(([k, v]) => formData.append(k, v));
-    files.forEach(f => formData.append("files", f));
+  setLoading(true);
 
-    setIsLoading(true);
-    setMessages(prev => [...prev, { role: "assistant", content: "Processing submission..." }]);
+  setMessages((p) => [
+    ...p,
+    { role: "assistant", content: "Submitting to system..." }
+  ]);
 
-    await fetch("/api/pitch", {
-      method: "POST",
-      body: formData
-    });
+  try {
+    const res = await fetch(
+      "https://hook.us2.make.com/pwv97ctf3lauprqry0hwgykmedyiy2uo",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      }
+    );
 
-    await sleep(800);
+    if (!res.ok) throw new Error("Webhook failed");
 
-    setMessages(prev => {
-      const copy = [...prev];
+    setMessages((p) => {
+      const copy = [...p];
       copy[copy.length - 1] = {
         role: "assistant",
-        content: "✅ Pitch submitted successfully 🚀"
+        content: "✅ Successfully submitted 🚀"
       };
       return copy;
     });
+  } catch (err) {
+    setMessages((p) => {
+      const copy = [...p];
+      copy[copy.length - 1] = {
+        role: "assistant",
+        content: "❌ Submission failed. Please try again."
+      };
+      return copy;
+    });
+  }
 
-    setIsLoading(false);
-  };
+  setLoading(false);
+};
 
   const handleFiles = e => setFiles(Array.from(e.target.files));
 
