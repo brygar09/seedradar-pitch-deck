@@ -10,12 +10,12 @@ const steps = [
 ];
 
 const questions = {
-  companyName: "Company name?",
-  website: "Website URL?",
-  description: "Brief description?",
-  founders: "Founders?",
-  linkedin: "Founders LinkedIn?",
-  attachments: "Upload files"
+  companyName: "What is your Company name?",
+  website: "What is your company's Website URL?",
+  description: "Provide Brief description of your company",
+  founders: "Who are the Founders?",
+  linkedin: "Provide Founders LinkedIn Profile",
+  attachments: "Upload deck"
 };
 
 export default function App() {
