@@ -354,6 +354,7 @@ export default function App() {
 				  <input
 					type="file"
 					multiple
+					accept="application/pdf"
 					onChange={handleFiles}
 					style={styles.hiddenInput}
 					id="fileUpload"
@@ -365,7 +366,7 @@ export default function App() {
 					<div style={styles.uploadText}>
 					  <b>Upload your pitch deck</b>
 					  <div style={styles.uploadSub}>
-						Drag & drop files here or click to browse
+						Drag & drop PDF files here or click to browse
 					  </div>
 					</div>
 				  </label>
