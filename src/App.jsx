@@ -150,29 +150,31 @@ const submit = async () => {
   );
 
   return (
-    <div style={{...styles.page}}>
-      <div style={{...styles.card, textAlign: "right", fontSize: "1.4rem"}}>
+    <div style={styles.page}>
+      <div style={styles.card}>
 
-        <div style={{
-      		  padding: 14,
-      		  borderBottom: "1px solid #eee",
-      		  display: "flex",
-      		  alignItems: "center",
-      		  gap: 10,
-      		  fontWeight: 600,
-      		  backgroundColor: "rgb(62, 64, 81)",
-      		  color: "white"
-      		}}>
-        
-      		  <img
-      			src="/seedradar-logo.png"
-      			alt="logo"
-      			style={{ width: 200 }}
-      		  />
-      
-      		&nbsp;Cold Pitch Intake
-      </div>
+        {/* HEADER */}
+        <div style={{...styles.header, 
+			  padding: 14,
+			  borderBottom: "1px solid #eee",
+			  display: "flex",
+			  alignItems: "center",
+			  gap: 10,
+			  fontWeight: 600,
+			  backgroundColor: "rgb(62, 64, 81)",
+			  color: "white"
+			}}>
+          <img
+            src="/seedradar-logo.png"
+            alt="logo"
+            style={{ width: 140, objectFit: "contain" }}
+          />
+          <span style={{ opacity: 0.7, fontSize: 15 }}>
+            Cold Pitch Intake
+          </span>
+        </div>
 
+        {/* CHAT */}
         <div style={styles.chat}>
           {messages.map((m, i) => (
             <div
@@ -180,35 +182,53 @@ const submit = async () => {
               style={{
                 ...styles.msg,
                 alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                background: m.role === "user" ? "#10a37f" : "#ececf1",
-                color: m.role === "user" ? "#fff" : "#111827"
+                background:
+                  m.role === "user"
+                    ? "linear-gradient(135deg, #10a37f, #0e8f6f)"
+                    : "#ffffff",
+                color: m.role === "user" ? "#fff" : "#111827",
+                border:
+                  m.role === "user"
+                    ? "none"
+                    : "1px solid rgba(0,0,0,0.06)"
               }}
             >
               {m.content}
-              {isLoading && i === messages.length - 1 && m.role === "assistant" && (
-                <LoadingDots />
-              )}
+
+              {isLoading &&
+                i === messages.length - 1 &&
+                m.role === "assistant" && (
+                  <div style={styles.dots}>
+                    <span>.</span><span>.</span><span>.</span>
+                  </div>
+                )}
             </div>
           ))}
 
           <div ref={bottomRef} />
         </div>
 
+        {/* INPUT */}
         <div style={styles.inputArea}>
           {steps[step] !== "attachments" ? (
             <textarea
               style={styles.input}
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKey}
               disabled={isLoading}
+              placeholder="Type your answer..."
             />
           ) : (
             <input type="file" multiple onChange={handleFiles} />
           )}
 
-          <button style={styles.button} onClick={nextStep} disabled={isLoading}>
-            {step === steps.length - 1 ? "Submit" : "Next"}
+          <button
+            style={styles.button}
+            onClick={nextStep}
+            disabled={isLoading}
+          >
+            {step === steps.length - 1 ? "Submit Pitch" : "Continue"}
           </button>
         </div>
 
@@ -217,68 +237,76 @@ const submit = async () => {
   );
 }
 
-
 const styles = {
   page: {
     height: "100vh",
-    background: "#f7f7f8",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    fontFamily: "Arial"
+    fontFamily: "Inter, system-ui, sans-serif",
+    background: "linear-gradient(135deg, #f5f7fb, #eef2f7)"
   },
+
   card: {
-    width: 440,
-    height: "90vh",
-    background: "#fff",
-    borderRadius: 16,
+    width: 460,
+    height: "92vh",
+    background: "#ffffff",
+    borderRadius: 20,
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
-    border: "1px solid #e5e7eb"
+    border: "1px solid rgba(0,0,0,0.06)",
+    boxShadow: "0 10px 40px rgba(0,0,0,0.08)"
   },
-  header: {
-    padding: 14,
-    fontWeight: 600,
-    borderBottom: "1px solid #e5e7eb"
-  },
+
   chat: {
     flex: 1,
-    padding: 16,
+    padding: 18,
     overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    background: "#fafbfc"
+  },
+
+  msg: {
+    padding: "12px 14px",
+    borderRadius: 14,
+    maxWidth: "78%",
+    fontSize: 14,
+    lineHeight: 1.4,
+    whiteSpace: "pre-wrap",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.04)"
+  },
+
+  inputArea: {
+    padding: 14,
+    borderTop: "1px solid rgba(0,0,0,0.06)",
+    background: "#fff",
     display: "flex",
     flexDirection: "column",
     gap: 10
   },
-  msg: {
-    padding: 10,
-    borderRadius: 12,
-    maxWidth: "80%",
-    fontSize: 14,
-    whiteSpace: "pre-wrap"
-  },
-  inputArea: {
-    padding: 12,
-    borderTop: "1px solid #e5e7eb",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8
-  },
+
   input: {
-    padding: 10,
-    borderRadius: 10,
-    border: "1px solid #e5e7eb"
+    padding: 12,
+    borderRadius: 12,
+    border: "1px solid #e5e7eb",
+    outline: "none",
+    fontSize: 14,
+    transition: "all 0.2s",
+    resize: "none"
   },
+
   button: {
-    padding: 10,
-    background: "#10a37f",
+    padding: 12,
+    background: "linear-gradient(135deg, #10a37f, #0e8f6f)",
     color: "#fff",
     border: "none",
-    borderRadius: 10,
-    cursor: "pointer"
-  },
-  dots: {
-    marginLeft: 6,
-    animation: "blink 1s infinite"
+    borderRadius: 12,
+    cursor: "pointer",
+    fontWeight: 600,
+    transition: "all 0.2s",
+    boxShadow: "0 6px 18px rgba(16,163,127,0.25)"
   }
 };
