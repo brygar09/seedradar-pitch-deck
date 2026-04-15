@@ -24,6 +24,8 @@ export default function App() {
 	const [splashDone, setSplashDone] = useState(false);
 	const [splashProgress, setSplashProgress] = useState(0);
 
+	const [appReady, setAppReady] = useState(false);
+
 	const [loaded, setLoaded] = useState(false);
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const [typingIndex, setTypingIndex] = useState(null);
@@ -64,6 +66,9 @@ export default function App() {
 
 			  setTimeout(() => {
 				setShowSplash(false);
+				setTimeout(() => {
+				  setAppReady(true);
+				}, 50);
 			  }, 600);
 			}, 300);
 		  }
@@ -73,9 +78,18 @@ export default function App() {
 
 		return () => clearInterval(interval);
 	}, []);
-	useEffect(() => {
-	  setLoaded(true);
-	}, []);
+	// =========================
+  // CARD ANIMATION SAFE MOUNT
+  // =========================
+  useEffect(() => {
+    if (appReady) {
+      const t = setTimeout(() => {
+        setLoaded(true);
+      }, 60);
+
+      return () => clearTimeout(t);
+    }
+  }, [appReady]);
 	// =========================
 	// START CHAT AFTER SPLASH
 	// =========================
@@ -597,8 +611,10 @@ const styles = {
 
 	card: (isMobile, loaded) => ({
 		opacity: loaded ? 1 : 0,
-		transform: loaded ? "translateY(0px)" : "translateY(20px)",
-		transition: "0.5s ease",
+		transform: loaded
+		  ? "translate3d(0,0,0)"
+		  : "translate3d(0,40px,0)",
+		transition: "opacity 0.9s ease, transform 0.9s ease",
 		width: isMobile ? "100%" : 460,
 		height: isMobile ? "100vh" : "92vh",
 		background: "#fff",
@@ -606,7 +622,8 @@ const styles = {
 		flexDirection: "column",
 		borderRadius: 20,
 		overflow: "hidden",
-		boxShadow: "0 20px 60px rgba(0,0,0,0.35)"
+		boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+		willChange: "transform, opacity"
 	}),
 
 	chat: {
