@@ -17,10 +17,17 @@ const questions = {
 };
 
 export default function App() {
-  const [step, setStep] = useState(0);
-  const [input, setInput] = useState("");
-  const [files, setFiles] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+	const [isMobile, setIsMobile] = useState(false);
+	useEffect(() => {
+		const check = () => setIsMobile(window.innerWidth < 768);
+		check();
+		window.addEventListener("resize", check);
+		return () => window.removeEventListener("resize", check);
+	}, []);
+	const [step, setStep] = useState(0);
+	const [input, setInput] = useState("");
+	const [files, setFiles] = useState([]);
+	const [isLoading, setIsLoading] = useState(false);
 
   const bottomRef = useRef(null);
 
@@ -282,7 +289,7 @@ export default function App() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.card}>
+      <div style={styles.card(isMobile)}>
 
         {/* HEADER */}
         <div style={{...styles.header, 
@@ -305,8 +312,7 @@ export default function App() {
           </span>
         </div>
 
-        {/* PROGRESS BAR */}
-        <ProgressBar />
+        
 
         {/* CHAT */}
         <div style={styles.chat}>
@@ -332,7 +338,8 @@ export default function App() {
 
           <div ref={bottomRef} />
         </div>
-
+		{/* PROGRESS BAR */}
+        <ProgressBar />
         {/* INPUT */}
         <div style={styles.inputArea}>
           {steps[step] !== "attachments" ? (
@@ -399,6 +406,7 @@ export default function App() {
 const styles = {
   page: {
     height: "100vh",
+  	width: "100%",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -406,17 +414,16 @@ const styles = {
     background: "linear-gradient(135deg, #f5f7fb, #eef2f7)"
   },
 
-  card: {
-    width: 460,
-    height: "92vh",
-    background: "#ffffff",
-    borderRadius: 20,
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-    border: "1px solid rgba(0,0,0,0.06)",
-    boxShadow: "0 10px 40px rgba(0,0,0,0.08)"
-  },
+  card: (isMobile) => ({
+	  width: isMobile ? "100%" : 460,
+	  height: isMobile ? "100vh" : "92vh",
+	  borderRadius: isMobile ? 10 : 20,
+	  background: "#fff",
+	  display: "flex",
+	  flexDirection: "column",
+	  overflow: "hidden",
+	  boxShadow: isMobile ? "none" : "0 20px 60px rgba(0,0,0,0.35)"
+	}),
 
   chat: {
     flex: 1,
@@ -439,12 +446,11 @@ const styles = {
   },
 
   inputArea: {
-    padding: 14,
-    borderTop: "1px solid rgba(0,0,0,0.06)",
-    background: "#fff",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10
+    padding: 12,
+	  borderTop: "1px solid #eee",
+	  background: "#fff",
+	  position: "sticky",
+	  bottom: 0
   },
 
   input: {
