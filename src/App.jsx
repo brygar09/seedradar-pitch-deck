@@ -446,8 +446,12 @@ const styles = {
   },
 
   inputArea: {
-    padding: 12,
-    borderTop: "1px solid #eee"
+    padding: 14,
+    borderTop: "1px solid rgba(0,0,0,0.06)",
+    background: "#fff",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10
   },
 
   input: {
