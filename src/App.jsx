@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 const steps = [
   "companyName",
@@ -474,6 +475,7 @@ Files: ${files.length} uploaded
   // =========================
   return (
 		<div style={styles.page}>
+			<Analytics />
 			<div style={styles.card(isMobile, loaded)}>
 
 				{/* HEADER */}
