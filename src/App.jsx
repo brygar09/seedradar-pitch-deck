@@ -1,29 +1,33 @@
 import { useState, useRef, useEffect } from "react";
 
 const steps = [
-					"companyName",
-					"website",
-					"description",
-					"foundersCount",
-					"attachments"
-				];
+  "companyName",
+  "website",
+  "description",
+  "foundersCount",
+  "attachments"
+];
 
 const questions = {
-					companyName: "What is your company name?",
-					website: "What is your company's website URL?",
-					description: "Please provide a brief description of your company.",
-					foundersCount: "How many founders does your company have?",
-					attachments: "Please upload your pitch deck."
-					};
+  companyName: "What is your company name?",
+  website: "What is your company's website URL?",
+  description: "Please provide a brief description of your company.",
+  foundersCount: "How many founders does your company have?",
+  attachments: "Please upload your pitch deck."
+};
 
 export default function App() {
-	const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // SPLASH
+	const [showSplash, setShowSplash] = useState(true);
+	const [splashDone, setSplashDone] = useState(false);
+	const [splashProgress, setSplashProgress] = useState(0);
+
 	const [loaded, setLoaded] = useState(false);
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const [typingIndex, setTypingIndex] = useState(null);
-	useEffect(() => {
-		setLoaded(true);
-	}, []);
+	
 	useEffect(() => {
 		const check = () => setIsMobile(window.innerWidth < 768);
 		check();
@@ -41,16 +45,52 @@ export default function App() {
 	  { role: "assistant", content: "" },
 	  { role: "assistant", content: "" }
 	]);
-
+	
+	// =========================
+	// SPLASH ANIMATION (Apple style)
+	// =========================
 	useEffect(() => {
-	  setTimeout(() => {
-		typeMessage("Welcome to Seedradar cold pitch intake — let’s collect your pitch.", 0);
+		let progress = 0;
+
+		const interval = setInterval(() => {
+		  progress += Math.random() * 10 + 5;
+
+		  if (progress >= 100) {
+			progress = 100;
+			clearInterval(interval);
+
+			setTimeout(() => {
+			  setSplashDone(true);
+
+			  setTimeout(() => {
+				setShowSplash(false);
+			  }, 600);
+			}, 300);
+		  }
+
+		  setSplashProgress(progress);
+		}, 120);
+
+		return () => clearInterval(interval);
+	}, []);
+	useEffect(() => {
+	  setLoaded(true);
+	}, []);
+	// =========================
+	// START CHAT AFTER SPLASH
+	// =========================
+	useEffect(() => {
+		if (showSplash) return;
 
 		setTimeout(() => {
-		  typeMessage(questions.companyName, 1);
-		}, 1500);
-	  }, 1000);
-	}, []);
+			typeMessage("Welcome to Seedradar cold pitch intake — let’s collect your pitch.", 0);
+
+			setTimeout(() => {
+			  typeMessage(questions.companyName, 1);
+			}, 1500);
+		}, 1000);
+	}, [showSplash]);
+	
 
 	const [form, setForm] = useState({
 		companyName: "",
@@ -58,6 +98,7 @@ export default function App() {
 		description: ""
 	});
 
+  
 	// =========================
 	// FOUNDERS STATE
 	// =========================
@@ -85,8 +126,11 @@ export default function App() {
 	Math.round((currentFounderNumber / totalFounders) * 100)
 	)
 	: 0;
+	
 
-	// =========================
+
+
+  // =========================
 	// MAIN FLOW
 	// =========================
 	const typeMessage = (text, index, speed = 15) => {
@@ -112,7 +156,43 @@ export default function App() {
 		  }, speed);
 	};
 
-	const nextStep = async () => {
+  // =========================
+  // SPLASH SCREEN
+  // =========================
+  if (showSplash) {
+    return (
+      <div
+        style={{
+          ...styles.splash,
+          opacity: splashDone ? 0 : 1,
+          transition: "0.6s ease"
+        }}
+      >
+        <div style={styles.splashCard}>
+          <img
+            src="/seedradar-logo.png"
+            alt="logo"
+            style={styles.splashLogo}
+          />
+
+          <div style={styles.loadingBar}>
+            <div
+              style={{
+                ...styles.loadingFill,
+                width: `${splashProgress}%`
+              }}
+            />
+          </div>
+
+          <div style={styles.loadingText}>
+            Loading experience...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const nextStep = async () => {
 		if (isSubmitted) return;
 		const key = steps[step];
 
@@ -252,7 +332,7 @@ export default function App() {
 		}
 	};
 
-	// =========================
+  // =========================
 	// SUBMIT
 	// =========================
 	const submit = async () => {
@@ -375,7 +455,10 @@ Files: ${files.length} uploaded
 		)
 	);
 
-	return (
+  // =========================
+  // UI
+  // =========================
+  return (
 		<div style={styles.page}>
 			<div style={styles.card(isMobile, loaded)}>
 
@@ -498,11 +581,11 @@ Files: ${files.length} uploaded
 	);
 }
 
-/* =========================
-STYLES
-========================= */
+// =========================
+// STYLES
+// =========================
 const styles = {
-	page: {
+  page: {
 		height: "100vh",
 		width: "100%",
 		display: "flex",
@@ -515,15 +598,15 @@ const styles = {
 	card: (isMobile, loaded) => ({
 		opacity: loaded ? 1 : 0,
 		transform: loaded ? "translateY(0px)" : "translateY(20px)",
-		transition: "all 0.5s ease",
-		width: isMobile ? "100%" : 460,
-		height: isMobile ? "100vh" : "92vh",
-		borderRadius: isMobile ? 10 : 20,
+		transition: "0.5s ease",
+		width: 420,
+		height: "90vh",
 		background: "#fff",
 		display: "flex",
 		flexDirection: "column",
+		borderRadius: 20,
 		overflow: "hidden",
-		boxShadow: isMobile ? "none" : "0 20px 60px rgba(0,0,0,0.35)"
+		boxShadow: "0 20px 60px rgba(0,0,0,0.35)"
 	}),
 
 	chat: {
@@ -576,6 +659,7 @@ const styles = {
 		transition: "all 0.2s",
 		boxShadow: "0 6px 18px rgba(16,163,127,0.25)"
 	},
+
 
 	// PROGRESS BAR
 	progressWrap: {
@@ -652,5 +736,51 @@ const styles = {
 		borderRadius: 8,
 		background: "#fff",
 		border: "1px solid #e5e7eb"
-	}
+	},
+
+  // SPLASH (Apple-style)
+  splash: {
+    height: "100vh",
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "rgba(10,10,20,0.85)",
+    backdropFilter: "blur(18px)"
+  },
+
+  splashCard: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 16,
+    padding: 30,
+    borderRadius: 18,
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.1)"
+  },
+
+  splashLogo: {
+    width: 140,
+    filter: "drop-shadow(0 10px 30px rgba(0,0,0,0.4))"
+  },
+
+  loadingBar: {
+    width: 200,
+    height: 4,
+    background: "rgba(255,255,255,0.15)",
+    borderRadius: 999,
+    overflow: "hidden"
+  },
+
+  loadingFill: {
+    height: "100%",
+    background: "linear-gradient(90deg, #10a37f, #34d399)",
+    transition: "width 0.2s ease"
+  },
+
+  loadingText: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.7)"
+  }
 };
