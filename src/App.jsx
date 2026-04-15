@@ -38,9 +38,19 @@ export default function App() {
 	const bottomRef = useRef(null);
 
 	const [messages, setMessages] = useState([
-		{ role: "assistant", content: "Welcome — let’s collect your pitch." },
-		{ role: "assistant", content: questions.companyName }
+	  { role: "assistant", content: "" },
+	  { role: "assistant", content: "" }
 	]);
+
+	useEffect(() => {
+	  setTimeout(() => {
+		typeMessage("Welcome to Seedradar cold pitch intake — let’s collect your pitch.", 0);
+
+		setTimeout(() => {
+		  typeMessage(questions.companyName, 1);
+		}, 1500);
+	  }, 1000);
+	}, []);
 
 	const [form, setForm] = useState({
 		companyName: "",
@@ -103,6 +113,7 @@ export default function App() {
 	};
 
 	const nextStep = async () => {
+		if (isSubmitted) return;
 		const key = steps[step];
 
 		// =========================
@@ -122,13 +133,16 @@ export default function App() {
 			setFounderPhase("name");
 
 			setInput("");
+			setMessages((p) => {
+				const updated = [...p, { role: "assistant", content: "" }];
+				const index = updated.length - 1;
 
-			setTimeout(() => {
-				setMessages((p) => [
-				...p,
-				{ role: "assistant", content: "Founder 1 name?" }
-				]);
-			}, 300);
+				setTimeout(() => {
+				  typeMessage("Founder 1 name?", index);
+				}, 50);
+
+				return updated;
+			});
 
 			return;
 		}
@@ -166,12 +180,16 @@ export default function App() {
 
 				setStep(steps.indexOf("attachments"));
 
-				setTimeout(() => {
-				setMessages((p) => [
-					...p,
-					{ role: "assistant", content: "Upload deck" }
-					]);
-				}, 300);
+				setMessages((p) => {
+				  const updated = [...p, { role: "assistant", content: "" }];
+				  const index = updated.length - 1;
+
+				  setTimeout(() => {
+					typeMessage("Upload your pitch deck.", index);
+				  }, 50);
+
+				  return updated;
+				});
 
 				return;
 			}
@@ -332,7 +350,7 @@ Files: ${files.length} uploaded
 	const handleKey = (e) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
-			if (!isLoading) nextStep();
+			if (!isLoading && !isSubmitted) nextStep();
 		}
 	};
 
