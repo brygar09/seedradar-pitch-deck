@@ -447,10 +447,7 @@ const styles = {
 
   inputArea: {
     padding: 12,
-	  borderTop: "1px solid #eee",
-	  background: "#fff",
-	  position: "sticky",
-	  bottom: 0
+    borderTop: "1px solid #eee"
   },
 
   input: {
