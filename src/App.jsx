@@ -44,10 +44,7 @@ export default function App() {
 
 	const bottomRef = useRef(null);
 
-	const [messages, setMessages] = useState([
-	  { role: "assistant", content: "" },
-	  { role: "assistant", content: "" }
-	]);
+	const [messages, setMessages] = useState([]);
 	
 	// =========================
 	// SPLASH ANIMATION (Apple style)
@@ -98,10 +95,27 @@ export default function App() {
 		if (showSplash) return;
 
 		setTimeout(() => {
-			typeMessage("Welcome to Seedradar cold pitch intake — let’s collect your pitch.", 0);
+			setMessages((p) => {
+				const updated = [...p, { role: "assistant", content: "" }];
+				const index = updated.length - 1;
 
+				setTimeout(() => {
+				  typeMessage("Welcome to Seedradar cold pitch intake — let’s collect your pitch.", index);
+				}, 50);
+
+				return updated;
+			});
 			setTimeout(() => {
-			  typeMessage(questions.companyName, 1);
+				setMessages((p) => {
+					const updated = [...p, { role: "assistant", content: "" }];
+					const index = updated.length - 1;
+
+					setTimeout(() => {
+					  typeMessage(questions.companyName, index);
+					}, 50);
+
+					return updated;
+				});
 			}, 1500);
 		}, 1000);
 	}, [showSplash]);
